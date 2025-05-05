@@ -1,5 +1,8 @@
 import { useState } from "react"
 import { useNavigate, useParams } from "react-router"
+import { AxiosError } from "axios"
+
+import { api } from "../services/api"
 
 import { z, ZodError } from "zod"
 
@@ -28,7 +31,7 @@ export function Refund() {
     const navigate = useNavigate()
     const params = useParams<{id: string}>()
 
-    function onSubmit(e: React.FormEvent) {
+    async function onSubmit(e: React.FormEvent) {
         e.preventDefault()
 
         if(params.id) {
@@ -44,12 +47,18 @@ export function Refund() {
                 amount: amount.replace(",", ".")
             })
 
+            await api.post("/refunds", {...data, filename: "18498509099999804545.png"})
+
             navigate("/confirm", { state: { fromSubmit: true } })            
         } catch (error) {
             console.log(error)
-
+            
             if(error instanceof ZodError) {
                 return alert(error.issues[0].message)
+            }
+
+            if(error instanceof AxiosError) {
+                return alert(error.response?.data.message)
             }
 
             alert("Não foi possível realizar a solicitação.")
